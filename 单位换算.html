@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>智能单位换算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(145deg, #e9f0f5 0%, #dce5ed 100%);
+            min-height: 100vh;
+            padding: 20px 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 主卡片 */
+        .converter-card {
+            max-width: 600px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.86);
+            backdrop-filter: blur(18px);
+            border-radius: 48px;
+            padding: 28px 22px 36px;
+            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.25), 0 1px 1px rgba(255, 255, 255, 0.6) inset;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            transition: all 0.2s;
+        }
+
+        h1 {
+            font-size: 1.9rem;
+            font-weight: 800;
+            text-align: center;
+            background: linear-gradient(135deg, #1e2f4b, #2b4f6e);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .sub {
+            text-align: center;
+            color: #5c6f8c;
+            font-size: 0.75rem;
+            margin-bottom: 28px;
+            border-bottom: 1px dashed #cbd6e6;
+            padding-bottom: 12px;
+        }
+
+        /* 分类标签区 */
+        .category-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        .cat-btn {
+            background: rgba(230, 240, 250, 0.7);
+            border: none;
+            padding: 8px 18px;
+            border-radius: 60px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #2c4c6e;
+            cursor: pointer;
+            transition: all 0.2s;
+            backdrop-filter: blur(4px);
+            font-family: inherit;
+        }
+        .cat-btn.active {
+            background: #2c6e9e;
+            color: white;
+            box-shadow: 0 5px 12px rgba(44,110,158,0.3);
+        }
+        .cat-btn:hover:not(.active) {
+            background: #cbdae9;
+            transform: translateY(-2px);
+        }
+
+        /* 每个换算面板 */
+        .panel {
+            display: none;
+            animation: fadeIn 0.25s ease;
+        }
+        .panel.active-panel {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 换算行 */
+        .convert-row {
+            margin-bottom: 22px;
+        }
+        .label-icon {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #1f405e;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .input-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            background: #ffffffcc;
+            border-radius: 36px;
+            padding: 4px 4px 4px 18px;
+            border: 1px solid rgba(0,0,0,0.05);
+            backdrop-filter: blur(2px);
+        }
+        .input-group input {
+            flex: 2;
+            min-width: 120px;
+            background: transparent;
+            border: none;
+            padding: 14px 0;
+            font-size: 1rem;
+            font-weight: 500;
+            outline: none;
+            font-family: monospace;
+            color: #1f2f3e;
+        }
+        .input-group select {
+            background: #eef3fc;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #1f3b54;
+            cursor: pointer;
+            outline: none;
+            font-family: inherit;
+        }
+        .swap-icon {
+            display: inline-flex;
+            justify-content: center;
+            margin: 8px 0;
+            cursor: pointer;
+            background: #eef2f8;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            align-items: center;
+            justify-content: center;
+            transition: 0.1s;
+        }
+        .swap-icon:active {
+            transform: scale(0.92);
+        }
+        .result-area {
+            background: #e6f0fa;
+            border-radius: 32px;
+            padding: 16px 20px;
+            margin-top: 15px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #1b4a6e;
+            word-break: break-word;
+            border: 1px solid #cddae9;
+        }
+
+        hr {
+            margin: 18px 0;
+            border-color: #dce5f0;
+        }
+        .footer-note {
+            font-size: 0.7rem;
+            text-align: center;
+            color: #7c8faa;
+            margin-top: 24px;
+        }
+
+        @media (max-width: 480px) {
+            .converter-card {
+                padding: 20px 16px;
+            }
+            .input-group {
+                flex-wrap: wrap;
+                background: transparent;
+                padding: 0;
+                gap: 8px;
+            }
+            .input-group input {
+                background: #ffffffdd;
+                border-radius: 40px;
+                padding: 12px 18px;
+                width: 100%;
+                text-align: center;
+            }
+            .input-group select {
+                flex: 1;
+                text-align: center;
+            }
+            .cat-btn {
+                padding: 6px 14px;
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="converter-card">
+    <h1>📐 全能单位换算器</h1>
+    <div class="sub">长度 · 重量 · 温度 · 面积 · 体积 · 速度</div>
+
+    <!-- 类别切换 -->
+    <div class="category-tabs">
+        <button class="cat-btn active" data-cat="length">📏 长度</button>
+        <button class="cat-btn" data-cat="mass">⚖️ 重量</button>
+        <button class="cat-btn" data-cat="temp">🌡️ 温度</button>
+        <button class="cat-btn" data-cat="area">📐 面积</button>
+        <button class="cat-btn" data-cat="volume">🧊 体积</button>
+        <button class="cat-btn" data-cat="speed">⚡ 速度</button>
+    </div>
+
+    <!-- 长度换算面板 -->
+    <div id="panel-length" class="panel active-panel">
+        <div class="convert-row">
+            <div class="label-icon">📌 输入数值</div>
+            <div class="input-group">
+                <input type="number" id="length-value" placeholder="0" value="1" step="any">
+                <select id="length-from">
+                    <option value="meter">米 (m)</option>
+                    <option value="km">千米 (km)</option>
+                    <option value="cm">厘米 (cm)</option>
+                    <option value="mm">毫米 (mm)</option>
+                    <option value="mile">英里 (mile)</option>
+                    <option value="yard">码 (yd)</option>
+                    <option value="foot">英尺 (ft)</option>
+                    <option value="inch">英寸 (in)</option>
+                </select>
+            </div>
+        </div>
+        <div class="convert-row">
+            <div class="label-icon">🎯 换算目标</div>
+            <div class="input-group">
+                <select id="length-to">
+                    <option value="meter">米 (m)</option>
+                    <option value="km">千米 (km)</option>
+                    <option value="cm">厘米 (cm)</option>
+                    <option value="mm">毫米 (mm)</option>
+                    <option value="mile">英里 (mile)</option>
+                    <option value="yard">码 (yd)</option>
+                    <option value="foot">英尺 (ft)</option>
+                    <option value="inch">英寸 (in)</option>
+                </select>
+                <div class="swap-icon" id="swap-length">🔄</div>
+            </div>
+        </div>
+        <div class="result-area" id="length-result">结果: --</div>
+    </div>
+
+    <!-- 重量面板 -->
+    <div id="panel-mass" class="panel">
+        <div class="convert-row">
+            <div class="label-icon">⚖️ 输入数值</div>
+            <div class="input-group">
+                <input type="number" id="mass-value" placeholder="0" value="1" step="any">
+                <select id="mass-from">
+                    <option value="kg">千克 (kg)</option>
+                    <option value="g">克 (g)</option>
+                    <option value="mg">毫克 (mg)</option>
+                    <option value="lb">磅 (lb)</option>
+                    <option value="oz">盎司 (oz)</option>
+                    <option value="t">吨 (t)</option>
+                </select>
+            </div>
+        </div>
+        <div class="convert-row">
+            <div class="label-icon">🎯 换算目标</div>
+            <div class="input-group">
+                <select id="mass-to">
+                    <option value="kg">千克 (kg)</option>
+                    <option value="g">克 (g)</option>
+                    <option value="mg">毫克 (mg)</option>
+                    <option value="lb">磅 (lb)</option>
+                    <option value="oz">盎司 (oz)</option>
+                    <option value="t">吨 (t)</option>
+                </select>
+                <div class="swap-icon" id="swap-mass">🔄</div>
+            </div>
+        </div>
+        <div class="result-area" id="mass-result">结果: --</div>
+    </div>
+
+    <!-- 温度面板 -->
+    <div id="panel-temp" class="panel">
+        <div class="convert-row">
+            <div class="label-icon">🌡️ 输入温度</div>
+            <div class="input-group">
+                <input type="number" id="temp-value" placeholder="0" value="0" step="any">
+                <select id="temp-from">
+                    <option value="c">摄氏度 (°C)</option>
+                    <option value="f">华氏度 (°F)</option>
+                    <option value="k">开尔文 (K)</option>
+                </select>
+            </div>
+        </div>
+        <div class="convert-row">
+            <div class="label-icon">🎯 目标单位</div>
+            <div class="input-group">
+                <select id="temp-to">
+                    <option value="c">摄氏度 (°C)</option>
+                    <option value="f">华氏度 (°F)</option>
+                    <option value="k">开尔文 (K)</option>
+                </select>
+                <div class="swap-icon" id="swap-temp">🔄</div>
+            </div>
+        </div>
+        <div class="result-area" id="temp-result">结果: --</div>
+    </div>
+
+    <!-- 面积面板 -->
+    <div id="panel-area" class="panel">
+        <div class="convert-row"><div class="label-icon">📏 输入数值</div>
+            <div class="input-group"><input type="number" id="area-value" value="1" step="any">
+                <select id="area-from"><option value="sqm">平方米(m²)</option><option value="sqkm">平方公里(km²)</option><option value="sqcm">平方厘米(cm²)</option><option value="ha">公顷(ha)</option><option value="acre">英亩(acre)</option><option value="sqft">平方英尺(ft²)</option></select>
+            </div>
+        </div>
+        <div class="convert-row"><div class="label-icon">🎯 目标单位</div>
+            <div class="input-group"><select id="area-to"><option value="sqm">平方米(m²)</option><option value="sqkm">平方公里(km²)</option><option value="sqcm">平方厘米(cm²)</option><option value="ha">公顷(ha)</option><option value="acre">英亩(acre)</option><option value="sqft">平方英尺(ft²)</option></select>
+            <div class="swap-icon" id="swap-area">🔄</div></div>
+        </div>
+        <div class="result-area" id="area-result">结果: --</div>
+    </div>
+
+    <!-- 体积面板 -->
+    <div id="panel-volume" class="panel">
+        <div class="convert-row"><div class="label-icon">🧊 输入数值</div>
+            <div class="input-group"><input type="number" id="volume-value" value="1" step="any">
+                <select id="volume-from"><option value="liter">升(L)</option><option value="ml">毫升(mL)</option><option value="cubic_m">立方米(m³)</option><option value="cubic_ft">立方英尺(ft³)</option><option value="gal_us">加仑(美制)</option><option value="gal_uk">加仑(英制)</option></select>
+            </div>
+        </div>
+        <div class="convert-row"><div class="label-icon">🎯 目标单位</div>
+            <div class="input-group"><select id="volume-to"><option value="liter">升(L)</option><option value="ml">毫升(mL)</option><option value="cubic_m">立方米(m³)</option><option value="cubic_ft">立方英尺(ft³)</option><option value="gal_us">加仑(美制)</option><option value="gal_uk">加仑(英制)</option></select>
+            <div class="swap-icon" id="swap-volume">🔄</div></div>
+        </div>
+        <div class="result-area" id="volume-result">结果: --</div>
+    </div>
+
+    <!-- 速度面板 -->
+    <div id="panel-speed" class="panel">
+        <div class="convert-row"><div class="label-icon">⚡ 输入数值</div>
+            <div class="input-group"><input type="number" id="speed-value" value="1" step="any">
+                <select id="speed-from"><option value="kmh">千米/时 (km/h)</option><option value="ms">米/秒 (m/s)</option><option value="mph">英里/时 (mph)</option><option value="knot">节 (kn)</option></select>
+            </div>
+        </div>
+        <div class="convert-row"><div class="label-icon">🎯 目标单位</div>
+            <div class="input-group"><select id="speed-to"><option value="kmh">千米/时 (km/h)</option><option value="ms">米/秒 (m/s)</option><option value="mph">英里/时 (mph)</option><option value="knot">节 (kn)</option></select>
+            <div class="swap-icon" id="swap-speed">🔄</div></div>
+        </div>
+        <div class="result-area" id="speed-result">结果: --</div>
+    </div>
+    <div class="footer-note">✨ 实时计算 · 点击互换单位 · 支持小数与负数温度</div>
+</div>
+
+<script>
+    // 长度换算系数 (基准: 米)
+    const lengthMap = {
+        meter: 1,
+        km: 1000,
+        cm: 0.01,
+        mm: 0.001,
+        mile: 1609.344,
+        yard: 0.9144,
+        foot: 0.3048,
+        inch: 0.0254
+    };
+    function convertLength() {
+        let val = parseFloat(document.getElementById('length-value').value);
+        if (isNaN(val)) val = 0;
+        const fromUnit = document.getElementById('length-from').value;
+        const toUnit = document.getElementById('length-to').value;
+        const meters = val * lengthMap[fromUnit];
+        const result = meters / lengthMap[toUnit];
+        document.getElementById('length-result').innerHTML = `📏 结果: ${result.toFixed(8).replace(/\.?0+$/, '')} ${document.getElementById('length-to').options[document.getElementById('length-to').selectedIndex].text.split('(')[0].trim()}`;
+    }
+    function swapLength() {
+        let fromSel = document.getElementById('length-from');
+        let toSel = document.getElementById('length-to');
+        let temp = fromSel.value;
+        fromSel.value = toSel.value;
+        toSel.value = temp;
+        convertLength();
+    }
+
+    // 重量换算 (基准: 千克)
+    const massMap = { kg:1, g:0.001, mg:0.000001, lb:0.45359237, oz:0.028349523125, t:1000 };
+    function convertMass() {
+        let val = parseFloat(document.getElementById('mass-value').value);
+        if (isNaN(val)) val = 0;
+        const from = document.getElementById('mass-from').value;
+        const to = document.getElementById('mass-to').value;
+        const kgVal = val * massMap[from];
+        const result = kgVal / massMap[to];
+        document.getElementById('mass-result').innerHTML = `⚖️ 结果: ${result.toFixed(8).replace(/\.?0+$/, '')} ${document.getElementById('mass-to').options[document.getElementById('mass-to').selectedIndex].text.split('(')[0]}`;
+    }
+    function swapMass() {
+        let f = document.getElementById('mass-from'), t = document.getElementById('mass-to');
+        [f.value, t.value] = [t.value, f.value];
+        convertMass();
+    }
+
+    // 温度转换
+    function convertTemp() {
+        let val = parseFloat(document.getElementById('temp-value').value);
+        if (isNaN(val)) val = 0;
+        const from = document.getElementById('temp-from').value;
+        const to = document.getElementById('temp-to').value;
+        let celsius;
+        if (from === 'c') celsius = val;
+        else if (from === 'f') celsius = (val - 32) * 5/9;
+        else celsius = val - 273.15;
+        let result;
+        if (to === 'c') result = celsius;
+        else if (to === 'f') result = celsius * 9/5 + 32;
+        else result = celsius + 273.15;
+        document.getElementById('temp-result').innerHTML = `🌡️ 结果: ${result.toFixed(4).replace(/\.?0+$/, '')} ${document.getElementById('temp-to').options[document.getElementById('temp-to').selectedIndex].text.split('(')[0]}`;
+    }
+    function swapTemp() {
+        let f = document.getElementById('temp-from'), t = document.getElementById('temp-to');
+        [f.value, t.value] = [t.value, f.value];
+        convertTemp();
+    }
+
+    // 面积换算 (基准: 平方米)
+    const areaMap = { sqm:1, sqkm:1e6, sqcm:0.0001, ha:10000, acre:4046.8564224, sqft:0.09290304 };
+    function convertArea() {
+        let val = parseFloat(document.getElementById('area-value').value);
+        if (isNaN(val)) val = 0;
+        const from = document.getElementById('area-from').value;
+        const to = document.getElementById('area-to').value;
+        const sqmVal = val * areaMap[from];
+        const result = sqmVal / areaMap[to];
+        document.getElementById('area-result').innerHTML = `📐 结果: ${result.toFixed(8).replace(/\.?0+$/, '')} ${document.getElementById('area-to').options[document.getElementById('area-to').selectedIndex].text.split('(')[0]}`;
+    }
+    function swapArea() { let f=document.getElementById('area-from'),t=document.getElementById('area-to'); [f.value,t.value]=[t.value,f.value]; convertArea(); }
+
+    // 体积 (基准: 升)
+    const volumeMap = { liter:1, ml:0.001, cubic_m:1000, cubic_ft:28.316846592, gal_us:3.785411784, gal_uk:4.54609 };
+    function convertVolume() {
+        let val = parseFloat(document.getElementById('volume-value').value);
+        if (isNaN(val)) val = 0;
+        const from = document.getElementById('volume-from').value;
+        const to = document.getElementById('volume-to').value;
+        const liters = val * volumeMap[from];
+        const result = liters / volumeMap[to];
+        document.getElementById('volume-result').innerHTML = `🧊 结果: ${result.toFixed(8).replace(/\.?0+$/, '')} ${document.getElementById('volume-to').options[document.getElementById('volume-to').selectedIndex].text.split('(')[0]}`;
+    }
+    function swapVolume() { let f=document.getElementById('volume-from'),t=document.getElementById('volume-to'); [f.value,t.value]=[t.value,f.value]; convertVolume(); }
+
+    // 速度 (基准: m/s)
+    const speedMap = { ms:1, kmh:0.27777777777778, mph:0.44704, knot:0.51444444444 };
+    function convertSpeed() {
+        let val = parseFloat(document.getElementById('speed-value').value);
+        if (isNaN(val)) val = 0;
+        const from = document.getElementById('speed-from').value;
+        const to = document.getElementById('speed-to').value;
+        const ms = val * speedMap[from];
+        const result = ms / speedMap[to];
+        document.getElementById('speed-result').innerHTML = `⚡ 结果: ${result.toFixed(6).replace(/\.?0+$/, '')} ${document.getElementById('speed-to').options[document.getElementById('speed-to').selectedIndex].text.split('(')[0]}`;
+    }
+    function swapSpeed() { let f=document.getElementById('speed-from'),t=document.getElementById('speed-to'); [f.value,t.value]=[t.value,f.value]; convertSpeed(); }
+
+    // 面板切换
+    function switchCategory(catId) {
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active-panel'));
+        document.getElementById(`panel-${catId}`).classList.add('active-panel');
+        document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`.cat-btn[data-cat="${catId}"]`).classList.add('active');
+        // 触发一次当前面板的重新计算，保证显示更新
+        if (catId === 'length') convertLength();
+        else if (catId === 'mass') convertMass();
+        else if (catId === 'temp') convertTemp();
+        else if (catId === 'area') convertArea();
+        else if (catId === 'volume') convertVolume();
+        else if (catId === 'speed') convertSpeed();
+    }
+
+    // 绑定所有输入事件与按钮事件
+    function bindEvents() {
+        // length
+        document.getElementById('length-value').addEventListener('input', convertLength);
+        document.getElementById('length-from').addEventListener('change', convertLength);
+        document.getElementById('length-to').addEventListener('change', convertLength);
+        document.getElementById('swap-length').addEventListener('click', swapLength);
+        // mass
+        document.getElementById('mass-value').addEventListener('input', convertMass);
+        document.getElementById('mass-from').addEventListener('change', convertMass);
+        document.getElementById('mass-to').addEventListener('change', convertMass);
+        document.getElementById('swap-mass').addEventListener('click', swapMass);
+        // temp
+        document.getElementById('temp-value').addEventListener('input', convertTemp);
+        document.getElementById('temp-from').addEventListener('change', convertTemp);
+        document.getElementById('temp-to').addEventListener('change', convertTemp);
+        document.getElementById('swap-temp').addEventListener('click', swapTemp);
+        // area
+        document.getElementById('area-value').addEventListener('input', convertArea);
+        document.getElementById('area-from').addEventListener('change', convertArea);
+        document.getElementById('area-to').addEventListener('change', convertArea);
+        document.getElementById('swap-area').addEventListener('click', swapArea);
+        // volume
+        document.getElementById('volume-value').addEventListener('input', convertVolume);
+        document.getElementById('volume-from').addEventListener('change', convertVolume);
+        document.getElementById('volume-to').addEventListener('change', convertVolume);
+        document.getElementById('swap-volume').addEventListener('click', swapVolume);
+        // speed
+        document.getElementById('speed-value').addEventListener('input', convertSpeed);
+        document.getElementById('speed-from').addEventListener('change', convertSpeed);
+        document.getElementById('speed-to').addEventListener('change', convertSpeed);
+        document.getElementById('swap-speed').addEventListener('click', swapSpeed);
+    }
+
+    // 初始化默认值并选中长度面板
+    function initDefault() {
+        // 设置默认选中（长度→厘米转米，展示友好）
+        document.getElementById('length-from').value = 'cm';
+        document.getElementById('length-to').value = 'meter';
+        convertLength();
+        convertMass();
+        convertTemp();
+        convertArea();
+        convertVolume();
+        convertSpeed();
+    }
+
+    // 分类按钮监听
+    document.querySelectorAll('.cat-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const cat = btn.getAttribute('data-cat');
+            switchCategory(cat);
+        });
+    });
+
+    bindEvents();
+    initDefault();
+    // 确保一开始显示长度面板的数值
+    switchCategory('length');
+</script>
+</body>
+</html>
