@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>推箱子</title>
+    <title>推箱子 · 九关精工版</title>
     <style>
         * {
             margin: 0;
@@ -317,7 +317,7 @@
             <span class="stat-number" id="stepValue">0</span>
         </div>
         <div class="level-selector">
-            <label>🎮</label>
+            <label>🎮 关卡</label>
             <select id="levelSelect"></select>
         </div>
     </div>
@@ -459,7 +459,7 @@
                 const cell = document.createElement('div'); cell.className = 'cell';
                 if(val===1) cell.classList.add('wall');
                 else if(val===2||val===5||val===6) cell.classList.add('target');
-                if(val===3||val===6) cell.innerText='⛹️';
+                if(val===3||val===6) cell.innerText='🧑';
                 else if(val===4||val===5) cell.innerText='📦';
                 else if(val===2) { cell.innerText='⭐'; cell.style.fontSize='1.5rem'; cell.style.color='#e6a422'; }
                 else cell.innerText = '';
